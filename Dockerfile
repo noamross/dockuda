@@ -3,6 +3,7 @@ LABEL maintainer "Noam Ross <noam.ross@gmail.com>"
 
 # based on https://github.com/gw0/docker-debian-cuda/blob/master/Dockerfile and
 # https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/9.0/base/Dockerfile
+# requires nvidia-docker2 (runtime) to use: https://github.com/NVIDIA/nvidia-docker
 # Install cuda stuff from nvidia repositories.  Using Ubuntu 16.05, cuda 9.0 and cudnn 7
 RUN apt-get update && apt-get install --no-install-recommends -y \
     gnupg2 \
@@ -25,7 +26,7 @@ RUN ls /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs/* | xargs -I{} ln -s {
  && ln -s libcuda.so /usr/lib/x86_64-linux-gnu/libcuda.so.1 \
  && ln -s libnvidia-ml.so /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1
 
-# Make sure all sessions and RStudio can see the libraries
+# Make sure all sessions and RStudio can see the libraries, set nvidia runtime variables
 ENV CUDA_HOME=/usr/local/cuda \
   PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH} \
   LD_LIBRARY_PATH=/user/local/nvidia/lib:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
