@@ -28,8 +28,8 @@ RUN ls /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs/* | xargs -I{} ln -s {
 
 # Make sure all sessions and RStudio can see the libraries, set nvidia runtime variables
 ENV CUDA_HOME=/usr/local/cuda \
-  PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH} \
-  LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
+  PATH=/usr/local/cuda/bin:${PATH} \
+  LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
   NVIDIA_VISIBLE_DEVICES=all \
   NVIDIA_DRIVER_CAPABILITIES=compute,utility \
   NVIDIA_REQUIRE_CUDA="cuda>=9.0"
