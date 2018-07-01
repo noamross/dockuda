@@ -3,7 +3,6 @@ LABEL maintainer "Noam Ross <noam.ross@gmail.com>"
 
 # based on https://github.com/gw0/docker-debian-cuda/blob/master/Dockerfile and
 # https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/9.0/base/Dockerfile
-# requires nvidia-docker2 (runtime) to use: https://github.com/NVIDIA/nvidia-docker
 # Install cuda stuff from nvidia repositories.  Using Ubuntu 16.05, cuda 9.0 and cudnn 7
 RUN apt-get update && apt-get install --no-install-recommends -y \
     gnupg2 \
@@ -26,16 +25,16 @@ RUN ls /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs/* | xargs -I{} ln -s {
  && ln -s libcuda.so /usr/lib/x86_64-linux-gnu/libcuda.so.1 \
  && ln -s libnvidia-ml.so /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1
 
-# Make sure all sessions and RStudio can see the libraries, set nvidia runtime variables
+# Make sure all sessions and RStudio can see the libraries
 ENV CUDA_HOME=/usr/local/cuda \
-  PATH=/usr/local/cuda/bin:${PATH} \
-  LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
+  PATH=${CUDA_HOME}/bin:${PATH} \
+  LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${CUDA_HOME}/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
   NVIDIA_VISIBLE_DEVICES=all \
   NVIDIA_DRIVER_CAPABILITIES=compute,utility \
   NVIDIA_REQUIRE_CUDA="cuda>=9.0"
 RUN echo "rsession-ld-library-path=$LD_LIBRARY_PATH" >> /etc/rstudio/rserver.conf \
  && mkdir -p /usr/lib/R/etc \ 
- && echo 'Sys.setenv(CUDA_HOME="/usr/local/cuda"): Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/usr/local/cuda/bin", sep = ":"))' >> /usr/lib/R/etc/Rprofile.site
+ && echo 'Sys.setenv(CUDA_HOME="$CUDA_HOME"): Sys.setenv(PATH=paste(Sys.getenv("PATH"), "$CUDA_HOME/bin", sep = ":"))' >> /usr/lib/R/etc/Rprofile.site
 
 # adding nvtop to monitor GPUs
 RUN apt-get update  && apt-get install --no-install-recommends -y \
@@ -55,3 +54,11 @@ RUN apt-get update && apt-get -y install \
      python-pip && \
      pip install h5py pyyaml requests Pillow scipy tensorflow-gpu keras  && \
      install2.r --error keras 
+
+#Install xgboost with GPU support
+#Leaving out multi-gpu support (-DUSE_NCCL=ON) because there's a runtime error due to linking
+RUN git clone --recursive https://github.com/dmlc/xgboost \
+  && mkdir -p xgboost/build && cd xgboost/build \
+  && cmake .. -DUSE_CUDA=ON -DR_LIB=ON \
+  && make install -j \
+  && cd ../.. && rm -rf xgboost
